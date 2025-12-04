@@ -31,9 +31,12 @@ class N8nService {
             return `/n8n-api${endpoint}`;
         }
 
-        // Producción: proxy de Vercel
+        // Producción: proxy de Vercel con credenciales en query
         const path = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-        return `/api/proxy/${path}`;
+        const encodedUrl = encodeURIComponent(this.baseUrl);
+        const encodedKey = encodeURIComponent(this.apiKey);
+        const separator = path.includes('?') ? '&' : '?';
+        return `/api/proxy/${path}${separator}_n8nUrl=${encodedUrl}&_apiKey=${encodedKey}`;
     }
 
     /**
@@ -47,11 +50,6 @@ class N8nService {
         const isDev = window.location.hostname === 'localhost';
 
         if (isDev) {
-            // Desarrollo: header directo
-            headers['X-N8N-API-KEY'] = this.apiKey;
-        } else {
-            // Producción: headers para el proxy
-            headers['X-N8N-URL'] = this.baseUrl;
             headers['X-N8N-API-KEY'] = this.apiKey;
         }
 

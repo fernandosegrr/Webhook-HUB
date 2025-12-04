@@ -17,12 +17,16 @@ export default async function handler(req) {
 
     const url = new URL(req.url);
 
-    // Obtener headers
-    const n8nUrl = req.headers.get('x-n8n-url');
-    const apiKey = req.headers.get('x-n8n-api-key');
+    // Obtener credenciales de query params
+    const n8nUrl = url.searchParams.get('_n8nUrl');
+    const apiKey = url.searchParams.get('_apiKey');
 
     if (!n8nUrl || !apiKey) {
-        return new Response(JSON.stringify({ error: 'Missing n8n URL or API Key' }), {
+        return new Response(JSON.stringify({
+            error: 'Missing n8n URL or API Key',
+            receivedUrl: n8nUrl ? 'yes' : 'no',
+            receivedKey: apiKey ? 'yes' : 'no'
+        }), {
             status: 400,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         });
@@ -30,9 +34,18 @@ export default async function handler(req) {
 
     // Obtener el path - quitar /api/proxy del inicio
     const pathMatch = url.pathname.match(/\/api\/proxy\/(.*)/);
-    const path = pathMatch ? pathMatch[1] : '';
+    let path = pathMatch ? pathMatch[1] : '';
 
-    const targetUrl = `${n8nUrl}/api/v1/${path}${url.search}`;
+    // Reconstruir query string sin los params internos
+    const cleanParams = new URLSearchParams();
+    for (const [key, value] of url.searchParams) {
+        if (!key.startsWith('_')) {
+            cleanParams.append(key, value);
+        }
+    }
+    const queryString = cleanParams.toString();
+
+    const targetUrl = `${n8nUrl}/api/v1/${path}${queryString ? '?' + queryString : ''}`;
 
     try {
         const fetchOptions = {
@@ -59,12 +72,10 @@ export default async function handler(req) {
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': '*',
             },
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
+        return new Response(JSON.stringify({ error: error.message, targetUrl }), {
             status: 500,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         });
