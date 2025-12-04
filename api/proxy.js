@@ -3,7 +3,6 @@ export const config = {
 };
 
 export default async function handler(req) {
-    // Manejar preflight CORS
     if (req.method === 'OPTIONS') {
         return new Response(null, {
             status: 200,
@@ -18,7 +17,6 @@ export default async function handler(req) {
     try {
         const url = new URL(req.url);
 
-        // Obtener credenciales de query params
         const n8nUrl = url.searchParams.get('_n8nUrl');
         const apiKey = url.searchParams.get('_apiKey');
 
@@ -29,17 +27,14 @@ export default async function handler(req) {
             });
         }
 
-        // Extraer solo el path (sin /api/proxy/)
-        const fullPath = url.pathname.replace('/api/proxy/', '');
+        // Get path from URL (everything after /api/proxy/)
+        const pathMatch = url.pathname.match(/\/api\/proxy\/?(.*)/);
+        const fullPath = pathMatch ? pathMatch[1] : '';
 
-        // Lista de params a filtrar (internos y Vercel)
-        const filterParams = ['_n8nUrl', '_apiKey', 'path', 'path[]', '...path'];
-
-        // Reconstruir query params limpios
+        // Clean query params
         const cleanParams = new URLSearchParams();
         for (const [key, value] of url.searchParams) {
-            // Filtrar params internos y cualquier variante de path
-            if (!filterParams.includes(key) && !key.startsWith('path')) {
+            if (key !== '_n8nUrl' && key !== '_apiKey' && !key.startsWith('path')) {
                 cleanParams.append(key, value);
             }
         }
@@ -55,7 +50,6 @@ export default async function handler(req) {
             },
         };
 
-        // Solo agregar body si no es GET/HEAD
         if (req.method !== 'GET' && req.method !== 'HEAD') {
             try {
                 const body = await req.text();
