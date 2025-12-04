@@ -15,39 +15,35 @@ export default async function handler(req) {
         });
     }
 
-    const url = new URL(req.url);
-
-    // Obtener credenciales de query params
-    const n8nUrl = url.searchParams.get('_n8nUrl');
-    const apiKey = url.searchParams.get('_apiKey');
-
-    if (!n8nUrl || !apiKey) {
-        return new Response(JSON.stringify({
-            error: 'Missing n8n URL or API Key',
-            receivedUrl: n8nUrl ? 'yes' : 'no',
-            receivedKey: apiKey ? 'yes' : 'no'
-        }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        });
-    }
-
-    // Obtener el path - quitar /api/proxy del inicio
-    const pathMatch = url.pathname.match(/\/api\/proxy\/(.*)/);
-    let path = pathMatch ? pathMatch[1] : '';
-
-    // Reconstruir query string sin los params internos
-    const cleanParams = new URLSearchParams();
-    for (const [key, value] of url.searchParams) {
-        if (!key.startsWith('_')) {
-            cleanParams.append(key, value);
-        }
-    }
-    const queryString = cleanParams.toString();
-
-    const targetUrl = `${n8nUrl}/api/v1/${path}${queryString ? '?' + queryString : ''}`;
-
     try {
+        const url = new URL(req.url);
+
+        // Obtener credenciales de query params
+        const n8nUrl = url.searchParams.get('_n8nUrl');
+        const apiKey = url.searchParams.get('_apiKey');
+
+        if (!n8nUrl || !apiKey) {
+            return new Response(JSON.stringify({ error: 'Missing credentials' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            });
+        }
+
+        // Extraer solo el path (sin /api/proxy/)
+        const fullPath = url.pathname.replace('/api/proxy/', '');
+
+        // Reconstruir query params sin los internos
+        const cleanParams = new URLSearchParams();
+        for (const [key, value] of url.searchParams) {
+            // Filtrar params internos y el ...path de Vercel
+            if (key !== '_n8nUrl' && key !== '_apiKey' && !key.includes('path')) {
+                cleanParams.append(key, value);
+            }
+        }
+
+        const queryString = cleanParams.toString();
+        const targetUrl = `${n8nUrl}/api/v1/${fullPath}${queryString ? '?' + queryString : ''}`;
+
         const fetchOptions = {
             method: req.method,
             headers: {
@@ -56,12 +52,12 @@ export default async function handler(req) {
             },
         };
 
-        // Solo agregar body si no es GET
+        // Solo agregar body si no es GET/HEAD
         if (req.method !== 'GET' && req.method !== 'HEAD') {
-            const body = await req.text();
-            if (body) {
-                fetchOptions.body = body;
-            }
+            try {
+                const body = await req.text();
+                if (body) fetchOptions.body = body;
+            } catch (e) { }
         }
 
         const response = await fetch(targetUrl, fetchOptions);
@@ -75,7 +71,7 @@ export default async function handler(req) {
             },
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: error.message, targetUrl }), {
+        return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         });
