@@ -64,7 +64,7 @@ class N8nService {
      */
     async checkConnection(baseUrl, apiKey) {
         try {
-            // Primero guardamos las credenciales para poder usar getApiUrl
+            // Primero guardamos las credenciales para poder usar getApiUrl y getHeaders
             this.setCredentials(baseUrl, apiKey);
 
             // Usamos /workflows para validar - más compatible que /users/me
@@ -72,10 +72,7 @@ class N8nService {
 
             const response = await fetch(url, {
                 method: 'GET',
-                headers: {
-                    'X-N8N-API-KEY': apiKey,
-                    'Content-Type': 'application/json',
-                },
+                headers: this.getHeaders(), // Usar getHeaders para incluir X-N8N-URL en producción
             });
 
             if (!response.ok) {
