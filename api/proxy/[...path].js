@@ -32,11 +32,14 @@ export default async function handler(req) {
         // Extraer solo el path (sin /api/proxy/)
         const fullPath = url.pathname.replace('/api/proxy/', '');
 
-        // Reconstruir query params sin los internos (solo exactamente estos 3)
+        // Lista de params a filtrar (internos y Vercel)
+        const filterParams = ['_n8nUrl', '_apiKey', 'path', 'path[]', '...path'];
+
+        // Reconstruir query params limpios
         const cleanParams = new URLSearchParams();
         for (const [key, value] of url.searchParams) {
-            // Solo filtrar exactamente estos params internos
-            if (key !== '_n8nUrl' && key !== '_apiKey' && key !== 'path') {
+            // Filtrar params internos y cualquier variante de path
+            if (!filterParams.includes(key) && !key.startsWith('path')) {
                 cleanParams.append(key, value);
             }
         }
