@@ -20,27 +20,42 @@ class N8nService {
 
     /**
      * Obtiene la URL correcta para las peticiones
-     * En desarrollo, usa el proxy local para evitar CORS
+     * En desarrollo usa proxy local, en producción usa proxy de Vercel
      */
     getApiUrl(endpoint) {
         const isDev = window.location.hostname === 'localhost';
         const isKnownServer = this.baseUrl.includes('n8n-n8n.d6cr6o.easypanel.host');
 
         if (isDev && isKnownServer) {
+            // Desarrollo: proxy de Vite
             return `/n8n-api${endpoint}`;
         }
 
-        return `${this.baseUrl}/api/v1${endpoint}`;
+        // Producción: proxy de Vercel
+        const path = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+        return `/api/proxy/${path}`;
     }
 
     /**
      * Headers comunes para todas las peticiones
      */
     getHeaders() {
-        return {
-            'X-N8N-API-KEY': this.apiKey,
+        const headers = {
             'Content-Type': 'application/json',
         };
+
+        const isDev = window.location.hostname === 'localhost';
+
+        if (isDev) {
+            // Desarrollo: header directo
+            headers['X-N8N-API-KEY'] = this.apiKey;
+        } else {
+            // Producción: headers para el proxy
+            headers['X-N8N-URL'] = this.baseUrl;
+            headers['X-N8N-API-KEY'] = this.apiKey;
+        }
+
+        return headers;
     }
 
     /**
