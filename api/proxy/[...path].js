@@ -1,35 +1,72 @@
-export default async function handler(req, res) {
-    // Obtener la URL de n8n y API key del body o headers
-    const n8nUrl = req.headers['x-n8n-url'] || req.query.n8nUrl;
-    const apiKey = req.headers['x-n8n-api-key'];
+export const config = {
+    runtime: 'edge',
+};
 
-    if (!n8nUrl || !apiKey) {
-        return res.status(400).json({ error: 'Missing n8n URL or API Key' });
+export default async function handler(req) {
+    // Manejar preflight CORS
+    if (req.method === 'OPTIONS') {
+        return new Response(null, {
+            status: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': '*',
+            },
+        });
     }
 
-    // Obtener el path después de /api/proxy
-    const path = req.query.path || '';
-    const targetUrl = `${n8nUrl}/api/v1/${path}`;
+    const url = new URL(req.url);
+
+    // Obtener headers
+    const n8nUrl = req.headers.get('x-n8n-url');
+    const apiKey = req.headers.get('x-n8n-api-key');
+
+    if (!n8nUrl || !apiKey) {
+        return new Response(JSON.stringify({ error: 'Missing n8n URL or API Key' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
+    }
+
+    // Obtener el path - quitar /api/proxy del inicio
+    const pathMatch = url.pathname.match(/\/api\/proxy\/(.*)/);
+    const path = pathMatch ? pathMatch[1] : '';
+
+    const targetUrl = `${n8nUrl}/api/v1/${path}${url.search}`;
 
     try {
-        const response = await fetch(targetUrl, {
+        const fetchOptions = {
             method: req.method,
             headers: {
                 'X-N8N-API-KEY': apiKey,
                 'Content-Type': 'application/json',
             },
-            body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+        };
+
+        // Solo agregar body si no es GET
+        if (req.method !== 'GET' && req.method !== 'HEAD') {
+            const body = await req.text();
+            if (body) {
+                fetchOptions.body = body;
+            }
+        }
+
+        const response = await fetch(targetUrl, fetchOptions);
+        const data = await response.text();
+
+        return new Response(data, {
+            status: response.status,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': '*',
+            },
         });
-
-        const data = await response.json();
-
-        // Agregar headers CORS
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', '*');
-
-        return res.status(response.status).json(data);
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
     }
 }
