@@ -1412,3 +1412,243 @@ h1, h2, h3 { color: #ffffff !important; }
 
 /* Error Section */
 .error-section h2 { color: #ef4444; }
+
+/* ========================================
+   Google Drive Backup Styles
+   ======================================== */
+
+/* Backup Status Banner */
+.backup-status { padding: 10px 16px; margin-top: 12px; border-radius: 8px; font-size: 0.85rem; text-align: center; animation: fadeIn 0.3s; }
+.backup-status.success { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+.backup-status.error { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+/* Backup Button in Action Bar */
+.action-btn.backup { background: rgba(66,133,244,0.15); }
+.action-btn.backup.connected { background: rgba(16,185,129,0.15); }
+.action-btn.backup svg { stroke: #4285f4; }
+.action-btn.backup.connected svg { stroke: #10b981; }
+
+/* Backup Button in Card */
+.workflow-actions { display: flex; align-items: center; gap: 10px; }
+.backup-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(66,133,244,0.1); border-radius: 8px; color: #4285f4; transition: all 0.2s; }
+.backup-btn svg { width: 18px; height: 18px; }
+.backup-btn:hover { background: rgba(66,133,244,0.2); }
+.backup-btn:active { transform: scale(0.95); }
+.backup-btn.loading { opacity: 0.7; }
+.backup-btn.success { background: rgba(16,185,129,0.15); color: #10b981; }
+
+/* Workflow Success Message */
+.workflow-success { color: #10b981; font-size: 0.75rem; margin-top: 4px; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
+.modal-content { background: #1e293b; border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal-content h2 { font-size: 1.25rem; margin-bottom: 12px; color: #fff; }
+.modal-content p { color: #9ca3af; font-size: 0.9rem; margin-bottom: 16px; line-height: 1.5; }
+.modal-content ol { color: #9ca3af; font-size: 0.85rem; padding-left: 20px; margin-bottom: 16px; line-height: 1.8; }
+.modal-content a { color: #6366f1; }
+.google-input { width: 100%; padding: 12px 14px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 0.9rem; margin-bottom: 16px; }
+.google-input:focus { outline: none; border-color: #6366f1; }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.btn-secondary { padding: 10px 20px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #9ca3af; font-size: 0.9rem; }
+.btn-primary { padding: 10px 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 8px; color: #fff; font-size: 0.9rem; font-weight: 500; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ========================================
+   Insights / Analytics Styles
+   ======================================== */
+
+/* Insights Button */
+.action-btn.insights { background: rgba(139,92,246,0.15); }
+.action-btn.insights svg { stroke: #8b5cf6; }
+
+/* Insights View */
+.insights-view { min-height: 100vh; background: var(--bg-primary, #0a0a0f); }
+.insights-content { padding: 16px; }
+
+/* Date Range Selector */
+.date-range-selector { display: flex; gap: 8px; margin-bottom: 20px; }
+.date-range-selector button { flex: 1; padding: 10px 16px; background: rgba(255,255,255,0.05); border-radius: 8px; color: #9ca3af; font-size: 0.85rem; transition: all 0.2s; }
+.date-range-selector button.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+.date-range-selector button:hover:not(.active) { background: rgba(255,255,255,0.1); }
+
+/* Metrics Grid */
+.metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+.metric-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; text-align: center; }
+.metric-card.error { border-left: 3px solid #ef4444; }
+.metric-card.success { border-left: 3px solid #10b981; }
+.metric-value { display: block; font-size: 1.75rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.metric-card.error .metric-value { color: #ef4444; }
+.metric-card.success .metric-value { color: #10b981; }
+.metric-label { display: block; font-size: 0.8rem; color: #9ca3af; }
+.metric-period, .metric-change { display: block; font-size: 0.7rem; color: #6b7280; margin-top: 4px; }
+
+/* Failure Rate Card */
+.failure-rate-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+.failure-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.failure-title { font-size: 0.9rem; color: #9ca3af; }
+.failure-value { font-size: 1.5rem; font-weight: 700; color: #ef4444; }
+.failure-bar { height: 8px; background: rgba(239,68,68,0.1); border-radius: 4px; overflow: hidden; }
+.failure-fill { height: 100%; background: linear-gradient(90deg, #10b981, #fbbf24, #ef4444); border-radius: 4px; transition: width 0.5s ease; }
+.failure-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.7rem; color: #6b7280; }
+
+/* Chart Section */
+.chart-section { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; }
+.chart-section h2 { font-size: 0.9rem; color: #fff; margin-bottom: 16px; }
+.chart-container { display: flex; gap: 4px; height: 150px; align-items: flex-end; overflow-x: auto; padding-bottom: 8px; }
+.chart-bar-group { display: flex; flex-direction: column; align-items: center; min-width: 40px; flex: 1; }
+.chart-bars { display: flex; gap: 2px; height: 100px; align-items: flex-end; }
+.chart-bar { width: 12px; min-height: 2px; border-radius: 2px 2px 0 0; transition: height 0.3s ease; }
+.chart-bar.success { background: #10b981; }
+.chart-bar.error { background: #ef4444; }
+.chart-label { font-size: 0.65rem; color: #6b7280; margin-top: 6px; white-space: nowrap; }
+.chart-value { font-size: 0.7rem; color: #9ca3af; font-weight: 600; }
+.chart-legend { display: flex; justify-content: center; gap: 20px; margin-top: 16px; font-size: 0.75rem; color: #9ca3af; }
+.chart-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+
+@media (max-width: 480px) {
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .metric-card { padding: 12px; }
+  .metric-value { font-size: 1.5rem; }
+  .chart-bar-group { min-width: 32px; }
+  .chart-bar { width: 8px; }
+}
+
+/* ========================================
+   MOBILE OPTIMIZATION - COMPLETE
+   ======================================== */
+
+/* Touch-friendly targets (Apple recommends 44px minimum) */
+button, .workflow-card, .execution-card, .filter-tab, .action-btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Active states for touch feedback */
+button:active, .workflow-card:active, .execution-card:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* Safe areas for iPhone notch and home bar */
+.dashboard, .login-container, .executions-view, .insights-view, .execution-detail {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Smooth scrolling for iOS */
+.workflow-list, .executions-list, .insights-content, .execution-detail main {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Prevent text selection on interactive elements */
+button, .workflow-card, .execution-card {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Better input styling for mobile */
+input, textarea {
+  font-size: 16px !important; /* Prevents zoom on iOS */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Full viewport mobile responsive */
+@media screen and (max-width: 480px) {
+  /* Reduce padding on small screens */
+  .dashboard-header { padding: 12px 16px; }
+  .workflow-list { padding: 12px; gap: 10px; }
+  .filters-bar { padding: 8px 12px; }
+  
+  /* Compact header */
+  .dashboard-title { font-size: 1.5rem; }
+  .user-greeting { font-size: 0.8rem; }
+  .server-url { font-size: 0.65rem; }
+  
+  /* Stats row compact */
+  .stats-row { gap: 8px; }
+  .stat-item { padding: 10px 8px; }
+  .stat-value { font-size: 1.4rem; }
+  .stat-label { font-size: 0.65rem; }
+  
+  /* Search box compact */
+  .search-box { height: 44px; }
+  .search-box input { font-size: 0.9rem; }
+  
+  /* Filter tabs */
+  .filter-tabs { gap: 4px; }
+  .filter-tab { padding: 8px 10px; font-size: 0.75rem; }
+  
+  /* Action buttons */
+  .header-actions { gap: 6px; }
+  .action-btn { width: 38px; height: 38px; }
+  .action-btn svg { width: 16px; height: 16px; }
+  
+  /* Workflow cards */
+  .workflow-card { padding: 12px; }
+  .workflow-name { font-size: 0.95rem; }
+  .workflow-meta { font-size: 0.7rem; }
+  
+  /* Execution cards */
+  .execution-card { padding: 12px; }
+  .execution-id { font-size: 0.85rem; }
+  .execution-meta { font-size: 0.7rem; }
+  
+  /* View headers */
+  .view-header { padding: 12px 16px; }
+  .view-header h1 { font-size: 1.1rem; }
+  
+  /* Debug tabs compact */
+  .debug-tabs { gap: 6px; flex-wrap: wrap; }
+  .debug-tab { padding: 6px 10px; font-size: 0.7rem; }
+  
+  /* Canvas zoom controls */
+  .canvas-controls { bottom: 12px; right: 12px; }
+  .zoom-btn { width: 36px; height: 36px; font-size: 1rem; }
+}
+
+/* Very small screens (iPhone SE) */
+@media screen and (max-width: 375px) {
+  .dashboard-title { font-size: 1.3rem; }
+  .stats-row { flex-wrap: wrap; }
+  .stat-item { flex: 1 1 30%; }
+  .workflow-name { font-size: 0.9rem; }
+  .metric-value { font-size: 1.3rem; }
+}
+
+/* Landscape orientation */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .dashboard-header { padding: 8px 16px; }
+  .dashboard-title { font-size: 1.2rem; }
+  .stats-row { display: none; }
+}
+
+/* Custom scrollbars for mobile (thin) */
+@media (pointer: coarse) {
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+  
+  /* Hide scrollbar but keep scrolling */
+  .chart-container::-webkit-scrollbar { display: none; }
+  .chart-container { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* Dark mode scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

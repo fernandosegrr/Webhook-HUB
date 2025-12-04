@@ -200,12 +200,14 @@ class N8nService {
     /**
      * Obtiene las ejecuciones de un workflow o todas
      * @param {string|null} workflowId - ID del workflow (null = todas)
-     * @param {number} limit - Cantidad máxima de resultados
+     * @param {number} limit - Cantidad máxima de resultados (max 250)
      * @returns {Promise<{success: boolean, executions?: array, error?: string}>}
      */
-    async getExecutions(workflowId = null, limit = 20) {
+    async getExecutions(workflowId = null, limit = 100) {
         try {
-            let endpoint = `/executions?limit=${limit}`;
+            // n8n API tiene límite máximo de 250
+            const safeLimit = Math.min(limit, 250);
+            let endpoint = `/executions?limit=${safeLimit}`;
 
             if (workflowId) {
                 endpoint += `&workflowId=${workflowId}`;
@@ -222,8 +224,57 @@ class N8nService {
 
             const data = await response.json();
             const executions = data.data || data;
+            const nextCursor = data.nextCursor;
 
-            return { success: true, executions };
+            return { success: true, executions, nextCursor };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Obtiene TODAS las ejecuciones con paginación automática
+     * @param {string|null} workflowId - ID del workflow (null = todas)
+     * @param {function} onProgress - Callback de progreso (loaded, total)
+     * @returns {Promise<{success: boolean, executions?: array, error?: string}>}
+     */
+    async getAllExecutions(workflowId = null, onProgress = null) {
+        try {
+            let allExecutions = [];
+            let cursor = null;
+            let page = 0;
+            const limit = 250; // Máximo por página
+
+            do {
+                let endpoint = `/executions?limit=${limit}`;
+                if (workflowId) endpoint += `&workflowId=${workflowId}`;
+                if (cursor) endpoint += `&cursor=${cursor}`;
+
+                const response = await fetch(this.getApiUrl(endpoint), {
+                    method: 'GET',
+                    headers: this.getHeaders(),
+                });
+
+                if (!response.ok) {
+                    return { success: false, error: `Error: ${response.status}` };
+                }
+
+                const data = await response.json();
+                const executions = data.data || data;
+                allExecutions = allExecutions.concat(executions);
+                cursor = data.nextCursor;
+                page++;
+
+                if (onProgress) {
+                    onProgress(allExecutions.length);
+                }
+
+                // Límite de seguridad: máximo 20 páginas (5000 ejecuciones)
+                if (page >= 20) break;
+
+            } while (cursor);
+
+            return { success: true, executions: allExecutions };
         } catch (error) {
             return { success: false, error: error.message };
         }

@@ -15,7 +15,8 @@ export function ExecutionsList({ workflowId, workflowName, onBack, onSelectExecu
     const loadExecutions = async () => {
         setIsLoading(true);
         setError('');
-        const result = await n8nService.getExecutions(workflowId, 100);
+        // Aumentamos límite a 250 (máximo de n8n API)
+        const result = await n8nService.getExecutions(workflowId, 250);
         if (result.success) {
             setExecutions(result.executions);
             console.log('Executions loaded:', result.executions);
