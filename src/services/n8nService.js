@@ -1,0 +1,281 @@
+/**
+ * n8n API Service
+ * Wrapper para comunicarse con la API pública de n8n
+ */
+
+class N8nService {
+    constructor() {
+        this.baseUrl = '';
+        this.apiKey = '';
+    }
+
+    /**
+     * Configura las credenciales para las peticiones
+     */
+    setCredentials(baseUrl, apiKey) {
+        // Eliminar trailing slash
+        this.baseUrl = baseUrl.replace(/\/$/, '');
+        this.apiKey = apiKey;
+    }
+
+    /**
+     * Obtiene la URL correcta para las peticiones
+     * En desarrollo, usa el proxy local para evitar CORS
+     */
+    getApiUrl(endpoint) {
+        const isDev = window.location.hostname === 'localhost';
+        const isKnownServer = this.baseUrl.includes('n8n-n8n.d6cr6o.easypanel.host');
+
+        if (isDev && isKnownServer) {
+            return `/n8n-api${endpoint}`;
+        }
+
+        return `${this.baseUrl}/api/v1${endpoint}`;
+    }
+
+    /**
+     * Headers comunes para todas las peticiones
+     */
+    getHeaders() {
+        return {
+            'X-N8N-API-KEY': this.apiKey,
+            'Content-Type': 'application/json',
+        };
+    }
+
+    /**
+     * Valida la conexión con el servidor n8n
+     * @returns {Promise<{success: boolean, user?: object, error?: string}>}
+     */
+    async checkConnection(baseUrl, apiKey) {
+        try {
+            // Primero guardamos las credenciales para poder usar getApiUrl
+            this.setCredentials(baseUrl, apiKey);
+
+            // Usamos /workflows para validar - más compatible que /users/me
+            const url = this.getApiUrl('/workflows?limit=1');
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-N8N-API-KEY': apiKey,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                // Limpiamos credenciales si falla
+                this.baseUrl = '';
+                this.apiKey = '';
+
+                if (response.status === 401) {
+                    return { success: false, error: 'API Key inválida' };
+                }
+                if (response.status === 403) {
+                    return { success: false, error: 'Sin permisos. Verifica tu API Key.' };
+                }
+                if (response.status === 404) {
+                    return { success: false, error: 'Endpoint no encontrado. Verifica la URL' };
+                }
+                return { success: false, error: `Error del servidor: ${response.status}` };
+            }
+
+            // Conexión exitosa
+            return { success: true, user: { firstName: 'Usuario' } };
+        } catch (error) {
+            // Limpiamos credenciales si falla
+            this.baseUrl = '';
+            this.apiKey = '';
+
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                return {
+                    success: false,
+                    error: 'No se puede conectar al servidor. Verifica la URL o el CORS.'
+                };
+            }
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Obtiene todos los workflows
+     * @param {boolean|null} active - Filtrar por estado (null = todos)
+     * @returns {Promise<{success: boolean, workflows?: array, error?: string}>}
+     */
+    async getWorkflows(active = null) {
+        try {
+            let endpoint = '/workflows';
+
+            if (active !== null) {
+                endpoint += `?active=${active}`;
+            }
+
+            const response = await fetch(this.getApiUrl(endpoint), {
+                method: 'GET',
+                headers: this.getHeaders(),
+            });
+
+            if (!response.ok) {
+                return { success: false, error: `Error: ${response.status}` };
+            }
+
+            const data = await response.json();
+
+            // La API de n8n retorna { data: [...workflows] }
+            const workflows = data.data || data;
+
+            return { success: true, workflows };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Activa un workflow
+     * @param {string} id - ID del workflow
+     * @returns {Promise<{success: boolean, workflow?: object, error?: string}>}
+     */
+    async activateWorkflow(id) {
+        try {
+            const response = await fetch(this.getApiUrl(`/workflows/${id}/activate`), {
+                method: 'POST',
+                headers: this.getHeaders(),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return {
+                    success: false,
+                    error: errorData.message || `Error: ${response.status}`
+                };
+            }
+
+            const workflow = await response.json();
+            return { success: true, workflow };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Desactiva un workflow
+     * @param {string} id - ID del workflow
+     * @returns {Promise<{success: boolean, workflow?: object, error?: string}>}
+     */
+    async deactivateWorkflow(id) {
+        try {
+            const response = await fetch(this.getApiUrl(`/workflows/${id}/deactivate`), {
+                method: 'POST',
+                headers: this.getHeaders(),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return {
+                    success: false,
+                    error: errorData.message || `Error: ${response.status}`
+                };
+            }
+
+            const workflow = await response.json();
+            return { success: true, workflow };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Toggle de estado de workflow
+     * @param {string} id - ID del workflow
+     * @param {boolean} active - Estado deseado
+     */
+    async toggleWorkflow(id, active) {
+        if (active) {
+            return this.activateWorkflow(id);
+        } else {
+            return this.deactivateWorkflow(id);
+        }
+    }
+
+    /**
+     * Obtiene las ejecuciones de un workflow o todas
+     * @param {string|null} workflowId - ID del workflow (null = todas)
+     * @param {number} limit - Cantidad máxima de resultados
+     * @returns {Promise<{success: boolean, executions?: array, error?: string}>}
+     */
+    async getExecutions(workflowId = null, limit = 20) {
+        try {
+            let endpoint = `/executions?limit=${limit}`;
+
+            if (workflowId) {
+                endpoint += `&workflowId=${workflowId}`;
+            }
+
+            const response = await fetch(this.getApiUrl(endpoint), {
+                method: 'GET',
+                headers: this.getHeaders(),
+            });
+
+            if (!response.ok) {
+                return { success: false, error: `Error: ${response.status}` };
+            }
+
+            const data = await response.json();
+            const executions = data.data || data;
+
+            return { success: true, executions };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Obtiene el detalle de una ejecución específica
+     * @param {string} id - ID de la ejecución
+     * @returns {Promise<{success: boolean, execution?: object, error?: string}>}
+     */
+    async getExecution(id) {
+        try {
+            // includeData=true para obtener los datos de los nodos ejecutados
+            const response = await fetch(this.getApiUrl(`/executions/${id}?includeData=true`), {
+                method: 'GET',
+                headers: this.getHeaders(),
+            });
+
+            if (!response.ok) {
+                return { success: false, error: `Error: ${response.status}` };
+            }
+
+            const execution = await response.json();
+            return { success: true, execution };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Obtiene el detalle de un workflow específico
+     * @param {string} id - ID del workflow
+     * @returns {Promise<{success: boolean, workflow?: object, error?: string}>}
+     */
+    async getWorkflowDetail(id) {
+        try {
+            const response = await fetch(this.getApiUrl(`/workflows/${id}`), {
+                method: 'GET',
+                headers: this.getHeaders(),
+            });
+
+            if (!response.ok) {
+                return { success: false, error: `Error: ${response.status}` };
+            }
+
+            const workflow = await response.json();
+            return { success: true, workflow };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+}
+
+// Exportar instancia única (singleton)
+export const n8nService = new N8nService();
