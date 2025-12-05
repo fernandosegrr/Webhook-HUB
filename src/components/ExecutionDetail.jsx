@@ -7,10 +7,29 @@ export function ExecutionDetail({ execution: initialExecution, onBack }) {
     const [isLoading, setIsLoading] = useState(true);
     const [expandedNode, setExpandedNode] = useState(null);
     const [activeTab, setActiveTab] = useState('output');
-    const [scale, setScale] = useState(0.8);
+    const [scale, setScale] = useState(0.6); // Zoom más pequeño para ver todo
     const canvasRef = useRef(null);
+    const wrapperRef = useRef(null);
 
     useEffect(() => { loadData(); }, [initialExecution.id]);
+
+    // Auto-ajustar canvas cuando se carga
+    useEffect(() => {
+        if (wrapperRef.current && !isLoading && workflow) {
+            // En móvil, ajustar automáticamente al ancho
+            const wrapper = wrapperRef.current;
+            const isMobile = window.innerWidth < 600;
+
+            if (isMobile && canvasData) {
+                const newScale = Math.min(wrapper.clientWidth / canvasData.width, 0.8);
+                setScale(Math.max(newScale, 0.3));
+            }
+
+            // Scroll al inicio
+            wrapper.scrollLeft = 0;
+            wrapper.scrollTop = 0;
+        }
+    }, [workflow, isLoading, canvasData]);
 
     const loadData = async () => {
         setIsLoading(true);
@@ -154,7 +173,22 @@ export function ExecutionDetail({ execution: initialExecution, onBack }) {
 
     const zoomIn = () => setScale(s => Math.min(s + 0.2, 2));
     const zoomOut = () => setScale(s => Math.max(s - 0.2, 0.3));
-    const resetZoom = () => setScale(0.8);
+    const resetZoom = () => setScale(0.6);
+
+    // Ajustar al viewport
+    const fitToView = () => {
+        if (wrapperRef.current && canvasData) {
+            const wrapperWidth = wrapperRef.current.clientWidth;
+            const newScale = Math.min(wrapperWidth / canvasData.width, 1);
+            setScale(Math.max(newScale, 0.3));
+            setTimeout(() => {
+                if (wrapperRef.current) {
+                    wrapperRef.current.scrollLeft = 0;
+                    wrapperRef.current.scrollTop = 0;
+                }
+            }, 50);
+        }
+    };
 
     // Cuando se expande un nodo con error, mostrar tab de error
     const handleExpandNode = (nodeId) => {
@@ -217,12 +251,12 @@ export function ExecutionDetail({ execution: initialExecution, onBack }) {
                                     <button onClick={zoomOut} className="zoom-btn">−</button>
                                     <span className="zoom-level">{Math.round(scale * 100)}%</span>
                                     <button onClick={zoomIn} className="zoom-btn">+</button>
-                                    <button onClick={resetZoom} className="zoom-btn reset">⟲</button>
+                                    <button onClick={fitToView} className="zoom-btn reset" title="Ajustar a pantalla">⊡</button>
                                 </div>
                             </div>
 
-                            <div className="flow-canvas-wrapper" ref={canvasRef}>
-                                <div className="flow-canvas-inner" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                            <div className="flow-canvas-wrapper" ref={wrapperRef}>
+                                <div className="flow-canvas-inner" ref={canvasRef} style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
                                     <svg className="flow-canvas" width={canvasData.width} height={canvasData.height} viewBox={`0 0 ${canvasData.width} ${canvasData.height}`}>
                                         {canvasData.lines.map((line, i) => {
                                             const isExecuted = line.sourceStatus !== 'pending';
