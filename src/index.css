@@ -520,14 +520,41 @@ input {
   color: var(--text-muted);
 }
 
-.workflow-error {
+/* ========================================
+   Toggle Switch (Fixed Lines 523-539)
+   ======================================== */
+.toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: #374151;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle-switch.on {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.toggle-switch.toggling {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 3px;
   left: 3px;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   background: white;
   border-radius: 50%;
-  transition: var(--transition-base);
-  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-switch.on .toggle-slider {
@@ -3025,25 +3052,6 @@ textarea {
   }
 }
 
-/* Dark mode scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
 
@@ -3053,54 +3061,6 @@ textarea {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-}
-/* Toggle Switch - Fixed Styles */
-.toggle-switch {
-  position: relative;
-  width: 52px;
-  height: 28px;
-  background: #374151;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.toggle-switch.on {
-  background: #10b981;
-  border-color: #10b981;
-}
-
-.toggle-switch.toggling {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.toggle-slider {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-
-.toggle-switch.on .toggle-slider {
-  transform: translateX(24px);
-}
-
-.toggle-switch.toggling .toggle-slider {
-  width: 26px;
-}
-
-.workflow-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* ========================================

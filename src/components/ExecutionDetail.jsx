@@ -13,24 +13,6 @@ export function ExecutionDetail({ execution: initialExecution, onBack }) {
 
     useEffect(() => { loadData(); }, [initialExecution.id]);
 
-    // Auto-ajustar canvas cuando se carga
-    useEffect(() => {
-        if (wrapperRef.current && !isLoading && workflow) {
-            // En móvil, ajustar automáticamente al ancho
-            const wrapper = wrapperRef.current;
-            const isMobile = window.innerWidth < 600;
-
-            if (isMobile && canvasData) {
-                const newScale = Math.min(wrapper.clientWidth / canvasData.width, 0.8);
-                setScale(Math.max(newScale, 0.3));
-            }
-
-            // Scroll al inicio
-            wrapper.scrollLeft = 0;
-            wrapper.scrollTop = 0;
-        }
-    }, [workflow, isLoading, canvasData]);
-
     const loadData = async () => {
         setIsLoading(true);
         const execResult = await n8nService.getExecution(initialExecution.id);
@@ -157,6 +139,21 @@ export function ExecutionDetail({ execution: initialExecution, onBack }) {
 
         return { nodes, lines, width, height, nodeWidth, nodeHeight };
     }, [workflow, execution]);
+
+    // Auto-ajustar canvas en móvil
+    useEffect(() => {
+        if (wrapperRef.current && canvasData && !isLoading) {
+            const wrapper = wrapperRef.current;
+            const isMobile = window.innerWidth < 600;
+
+            if (isMobile) {
+                const newScale = Math.min(wrapper.clientWidth / canvasData.width, 0.8);
+                setScale(Math.max(newScale, 0.3));
+            }
+            wrapper.scrollLeft = 0;
+            wrapper.scrollTop = 0;
+        }
+    }, [canvasData, isLoading]);
 
     const formatJSON = (data) => {
         if (!data) return 'Sin datos';
